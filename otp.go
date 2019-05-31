@@ -1,9 +1,9 @@
 // Copyright (C) 2019 Michael J. Fromberger. All Rights Reserved.
 
-// Package otp generates single use authenticator codes using the TOTP or HOTP
-// algorithms specified in RFC 6238 and RFC 4226 respectively.
+// Package otp generates single use authenticator codes using the HOTP or TOTP
+// algorithms specified in RFC 4226 and RFC 6238 respectively.
 //
-// See https://tools.ietf.org/html/rfc6238, https://tools.ietf.org/html/rfc4226
+// See https://tools.ietf.org/html/rfc4226, https://tools.ietf.org/html/rfc6238
 package otp
 
 import (
@@ -24,7 +24,8 @@ func TimeWindow(n int) func() uint64 {
 }
 
 // Config holds the settings the control generation of authenticator codes.
-// The only required field is Key, all other fields have sensible defaults.
+// The only required field is Key. The other fields may be omitted, and will
+// use default values compatible with the Google authenticator.
 type Config struct {
 	Key string // shared secret between server and user (required)
 
