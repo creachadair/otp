@@ -97,10 +97,12 @@ func truncate(digest []byte) uint64 {
 	return code
 }
 
+const padding = "0000000000000000"
+
 func format(code uint64, width int) string {
 	s := strconv.FormatUint(code, 10)
-	for len(s) < width {
-		s = "0" + s // left pad with zeroes
+	if len(s) < width {
+		s = padding[:width-len(s)] + s // left-pad with zeros
 	}
 	return s[len(s)-width:]
 }
