@@ -23,6 +23,8 @@ func TimeWindow(n int) func() uint64 {
 	return func() uint64 { return uint64(time.Now().Unix()) / uint64(n) }
 }
 
+var timeWindow30 = TimeWindow(30) // default 30-second window
+
 // Config holds the settings the control generation of authenticator codes.
 // The only required field is Key. The other fields may be omitted, and will
 // use default values compatible with the Google authenticator.
@@ -78,7 +80,7 @@ func (c Config) timeStepWindow() uint64 {
 	if c.TimeStep != nil {
 		return c.TimeStep()
 	}
-	return TimeWindow(30)()
+	return timeWindow30()
 }
 
 func (c Config) hmac(counter uint64) []byte {
