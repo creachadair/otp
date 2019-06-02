@@ -42,7 +42,7 @@ type Config struct {
 func (c *Config) ParseKey(s string) error {
 	clean := strings.ToUpper(strings.Join(strings.Fields(s), ""))
 	if n := len(clean) % 8; n != 0 {
-		clean += strings.Repeat("=", 8-n)
+		clean += "========"[:8-n]
 	}
 	dec, err := base32.StdEncoding.DecodeString(clean)
 	if err != nil {
@@ -100,9 +100,9 @@ func truncate(digest []byte) uint64 {
 	return code
 }
 
-const padding = "0000000000000000"
-
 func format(code uint64, width int) string {
+	const padding = "00000000000000000000"
+
 	s := strconv.FormatUint(code, 10)
 	if len(s) < width {
 		s = padding[:width-len(s)] + s // left-pad with zeros
