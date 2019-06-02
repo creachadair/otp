@@ -39,6 +39,29 @@ var tests = []testCase{
 	{20000000000 / 30, 1465353130, "353130", ""},
 }
 
+var googleTests = []struct {
+	key     string
+	counter uint64
+	otp     string
+}{
+	// Manually generated compatibility test vectors for Google authenticator.
+	//
+	// To verify these test vectors, or to generate new ones, manually enter the
+	// key and set "time-based" to off. The first key shown is for index 1, and
+	// refreshing increments the index sequentially.
+	{"aaaa aaaa aaaa aaaa", 1, "812658"},
+	{"aaaa aaaa aaaa aaaa", 2, "073348"},
+	{"aaaa aaaa aaaa aaaa", 3, "887919"},
+	{"aaaa aaaa aaaa aaaa", 4, "320986"},
+	{"aaaa aaaa aaaa aaaa", 5, "435986"},
+
+	{"abcd efgh ijkl mnop", 1, "317963"},
+	{"abcd efgh ijkl mnop", 2, "625848"},
+	{"abcd efgh ijkl mnop", 3, "281014"},
+	{"abcd efgh ijkl mnop", 4, "709708"},
+	{"abcd efgh ijkl mnop", 5, "522086"},
+}
+
 func (tc testCase) Run(t *testing.T, c Config, gen func(uint64) string) {
 	t.Helper()
 
@@ -77,6 +100,20 @@ func TestTOTP(t *testing.T) {
 	for _, test := range tests {
 		timeNow = test.counter
 		test.Run(t, cfg, func(uint64) string { return cfg.TOTP() })
+	}
+}
+
+func TestGoogleAuthCompat(t *testing.T) {
+	for _, test := range googleTests {
+		var cfg Config
+		if err := cfg.ParseKey(test.key); err != nil {
+			t.Errorf("ParseKey(%q) failed: %v", test.key, err)
+			continue
+		}
+		got := cfg.HOTP(test.counter)
+		if got != test.otp {
+			t.Errorf("Key %q HOTP(%d) got %q, want %q", test.key, test.counter, got, test.otp)
+		}
 	}
 }
 
