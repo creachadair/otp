@@ -38,7 +38,8 @@ type Config struct {
 
 // ParseKey parses a key encoded as base32, which is the typical format used by
 // two-factor authentication setup tools. On success, the parsed key is stored
-// into c.Key. Whitespace is ignored.
+// into c.Key. Whitespace is ignored, case is normalized, and padding is added
+// if required.
 func (c *Config) ParseKey(s string) error {
 	clean := strings.ToUpper(strings.Join(strings.Fields(s), ""))
 	if n := len(clean) % 8; n != 0 {
@@ -57,7 +58,8 @@ func (c Config) HOTP(counter uint64) string {
 	return format(truncate(c.hmac(counter)), c.digits())
 }
 
-// TOTP returns the TOTP code for the current time step.
+// TOTP returns the TOTP code for the current time step.  If the current time
+// step value is t, this is equivalent to c.HOTP(t).
 func (c Config) TOTP() string {
 	return c.HOTP(c.timeStepWindow())
 }
