@@ -33,6 +33,7 @@ type Config struct {
 
 	Hash     func() hash.Hash // hash constructor (default is sha1.New)
 	TimeStep func() uint64    // TOTP time step (default is TimeWindow(30))
+	Counter  uint64           // HOTP counter value
 	Digits   int              // number of OTP digits (default 6)
 }
 
@@ -57,6 +58,9 @@ func (c *Config) ParseKey(s string) error {
 func (c Config) HOTP(counter uint64) string {
 	return format(truncate(c.hmac(counter)), c.digits())
 }
+
+// Next increments the counter and returns the HOTP corresponding to its value.
+func (c *Config) Next() string { c.Counter++; return c.HOTP(c.Counter) }
 
 // TOTP returns the TOTP code for the current time step.  If the current time
 // step value is t, this is equivalent to c.HOTP(t).

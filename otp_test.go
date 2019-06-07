@@ -90,6 +90,31 @@ func TestHOTP(t *testing.T) {
 	}
 }
 
+func TestNext(t *testing.T) {
+	const testKey = "aaaa aaaa aaaa aaaa"
+	var cfg Config
+	if err := cfg.ParseKey(testKey); err != nil {
+		t.Fatalf("ParseKey %q failed: %v", testKey, err)
+	}
+	var nrun int
+	for _, test := range googleTests {
+		if test.key != testKey {
+			continue
+		}
+		nrun++
+		got := cfg.Next()
+		if got != test.otp {
+			t.Errorf("Next [counter=%d]: got %q, want %q", cfg.Counter, got, test.otp)
+		}
+		if cfg.Counter != test.counter {
+			t.Errorf("Next counter: got %d, want %d", cfg.Counter, test.counter)
+		}
+	}
+	if nrun == 0 {
+		t.Fatal("Found no matching test cases")
+	}
+}
+
 func TestTOTP(t *testing.T) {
 	var timeNow uint64 // simulated clock, uses the test case index
 
