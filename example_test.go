@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 
-	"bitbucket.org/creachadair/otp"
+	"github.com/creachadair/otp"
 )
 
 func Example() {

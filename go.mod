@@ -1,3 +1,3 @@
-module bitbucket.org/creachadair/otp
+module github.com/creachadair/otp
 
 go 1.12
