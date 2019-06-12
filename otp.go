@@ -59,7 +59,7 @@ func (c Config) HOTP(counter uint64) string {
 	return format(truncate(c.hmac(counter)), c.digits())
 }
 
-// Next increments the counter and returns the HOTP corresponding to its value.
+// Next increments the counter and returns the HOTP corresponding to its new value.
 func (c *Config) Next() string { c.Counter++; return c.HOTP(c.Counter) }
 
 // TOTP returns the TOTP code for the current time step.  If the current time
