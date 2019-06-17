@@ -25,7 +25,7 @@ func TimeWindow(n int) func() uint64 {
 
 var timeWindow30 = TimeWindow(30) // default 30-second window
 
-// Config holds the settings the control generation of authenticator codes.
+// Config holds the settings that control generation of authentication codes.
 // The only required field is Key. The other fields may be omitted, and will
 // use default values compatible with the Google authenticator.
 type Config struct {
