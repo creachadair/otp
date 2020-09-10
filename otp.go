@@ -37,21 +37,26 @@ type Config struct {
 	Digits   int              // number of OTP digits (default 6)
 }
 
-// ParseKey parses a key encoded as base32, which is the typical format used by
-// two-factor authentication setup tools. On success, the parsed key is stored
-// into c.Key. Whitespace is ignored, case is normalized, and padding is added
-// if required.
+// ParseKey parses a base32 key using the top-level ParseKey function, and
+// stores the result in c.
 func (c *Config) ParseKey(s string) error {
-	clean := strings.ToUpper(strings.Join(strings.Fields(s), ""))
-	if n := len(clean) % 8; n != 0 {
-		clean += "========"[:8-n]
-	}
-	dec, err := base32.StdEncoding.DecodeString(clean)
+	dec, err := ParseKey(s)
 	if err != nil {
 		return err
 	}
 	c.Key = string(dec)
 	return nil
+}
+
+// ParseKey parses a key encoded as base32, the format used by common
+// two-factor authentication setup tools. Whitespace is ignored, case is
+// normalized, and padding is added if required.
+func ParseKey(s string) ([]byte, error) {
+	clean := strings.ToUpper(strings.Join(strings.Fields(s), ""))
+	if n := len(clean) % 8; n != 0 {
+		clean += "========"[:8-n]
+	}
+	return base32.StdEncoding.DecodeString(clean)
 }
 
 // HOTP returns the HOTP code for the specified counter value.
