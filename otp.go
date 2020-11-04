@@ -35,6 +35,11 @@ type Config struct {
 	TimeStep func() uint64    // TOTP time step (default is TimeWindow(30))
 	Counter  uint64           // HOTP counter value
 	Digits   int              // number of OTP digits (default 6)
+
+	// If set, this function is called with the truncated counter hash to format
+	// a code of the specified width. By default, the code is formatted as
+	// decimal digits (0..9).
+	Format func(v uint64, width int) string
 }
 
 // ParseKey parses a base32 key using the top-level ParseKey function, and
@@ -61,7 +66,7 @@ func ParseKey(s string) ([]byte, error) {
 
 // HOTP returns the HOTP code for the specified counter value.
 func (c Config) HOTP(counter uint64) string {
-	return format(truncate(c.hmac(counter)), c.digits())
+	return c.format(truncate(c.hmac(counter)), c.digits())
 }
 
 // Next increments the counter and returns the HOTP corresponding to its new value.
@@ -100,6 +105,13 @@ func (c Config) hmac(counter uint64) []byte {
 	h := hmac.New(c.newHash(), []byte(c.Key))
 	h.Write(ctr[:])
 	return h.Sum(nil)
+}
+
+func (c Config) format(v uint64, nd int) string {
+	if c.Format != nil {
+		return c.Format(v, nd)
+	}
+	return format(v, nd)
 }
 
 func truncate(digest []byte) uint64 {

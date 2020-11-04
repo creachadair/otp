@@ -130,16 +130,53 @@ func TestTOTP(t *testing.T) {
 
 func TestGoogleAuthCompat(t *testing.T) {
 	for _, test := range googleTests {
-		var cfg Config
-		if err := cfg.ParseKey(test.key); err != nil {
+		key, err := ParseKey(test.key)
+		if err != nil {
 			t.Errorf("ParseKey(%q) failed: %v", test.key, err)
 			continue
 		}
-		got := cfg.HOTP(test.counter)
-		if got != test.otp {
-			t.Errorf("Key %q HOTP(%d) got %q, want %q", test.key, test.counter, got, test.otp)
-		}
+		t.Run("StandardFormat", func(t *testing.T) {
+			cfg := Config{Key: string(key)}
+			got := cfg.HOTP(test.counter)
+			if got != test.otp {
+				t.Errorf("Key %q HOTP(%d) got %q, want %q", test.key, test.counter, got, test.otp)
+			}
+		})
+
+		t.Run("CustomFormat", func(t *testing.T) {
+			cfg := Config{
+				Key: string(key),
+
+				// Map digits to corresponding letters 0=a, 1=b, etc.
+				Format: func(v uint64, nd int) string {
+					buf := make([]byte, nd)
+					for i := nd - 1; i >= 0; i-- {
+						buf[i] = byte(v%10) + byte('a')
+						v /= 10
+					}
+					return string(buf)
+				},
+			}
+			got := cfg.HOTP(test.counter)
+			want := digitsToLetters(test.otp)
+			if got != want {
+				t.Errorf("Key %q HOTP(%d) got %q, want %q", test.key, test.counter, got, want)
+			}
+		})
 	}
+}
+
+// digitsToLetters maps each decimal digit in s to the corresponding letter in
+// the range a..j. It will panic for any value outside this range.
+func digitsToLetters(s string) string {
+	buf := make([]byte, len(s))
+	for i := range s {
+		if s[i] < '0' || s[i] > '9' {
+			panic("invalid digit")
+		}
+		buf[i] = s[i] - '0' + 'a'
+	}
+	return string(buf)
 }
 
 /*
