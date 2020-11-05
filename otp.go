@@ -11,6 +11,7 @@ import (
 	"crypto/sha1"
 	"encoding/base32"
 	"encoding/binary"
+	"fmt"
 	"hash"
 	"strconv"
 	"strings"
@@ -39,6 +40,8 @@ type Config struct {
 	// If set, this function is called with the truncated counter hash to format
 	// a code of the specified width. By default, the code is formatted as
 	// decimal digits (0..9).
+	//
+	// If Format returns a string of the wrong length, code generation panics.
 	Format func(v uint64, width int) string
 }
 
@@ -66,7 +69,12 @@ func ParseKey(s string) ([]byte, error) {
 
 // HOTP returns the HOTP code for the specified counter value.
 func (c Config) HOTP(counter uint64) string {
-	return c.format(truncate(c.hmac(counter)), c.digits())
+	nd := c.digits()
+	code := c.format(truncate(c.hmac(counter)), nd)
+	if len(code) != nd {
+		panic(fmt.Sprintf("invalid code length: got %d, want %d", len(code), nd))
+	}
+	return code
 }
 
 // Next increments the counter and returns the HOTP corresponding to its new value.

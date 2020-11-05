@@ -166,6 +166,31 @@ func TestGoogleAuthCompat(t *testing.T) {
 	}
 }
 
+func TestFormatBounds(t *testing.T) {
+	cfg := Config{
+		Key:      "whatever",
+		TimeStep: func() uint64 { return 1 },
+
+		// Request 5 digits, but generate 8.
+		// This should cause code generation to panic.
+		Digits: 5,
+		Format: func(v uint64, nd int) string {
+			return "12345678" // N.B. not 5
+		},
+	}
+	t.Run("Panic", func(t *testing.T) {
+		var code string
+		defer func() {
+			p := recover()
+			if p == nil {
+				t.Fatalf("Expected failure; got %q", code)
+			}
+			t.Logf("Got expected panic: %v", p)
+		}()
+		code = cfg.TOTP()
+	})
+}
+
 // digitsToLetters maps each decimal digit in s to the corresponding letter in
 // the range a..j. It will panic for any value outside this range.
 func digitsToLetters(s string) string {
