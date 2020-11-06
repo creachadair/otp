@@ -40,8 +40,8 @@ type URL struct {
 	Counter   uint64
 }
 
-// ParseSecret parses the contents of the RawSecret field.
-func (u *URL) ParseSecret() ([]byte, error) { return otp.ParseKey(u.RawSecret) }
+// Secret parses the contents of the RawSecret field.
+func (u *URL) Secret() ([]byte, error) { return otp.ParseKey(u.RawSecret) }
 
 // SetSecret encodes key as base32 and updates the RawSecret field.
 func (u *URL) SetSecret(key []byte) {

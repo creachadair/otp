@@ -40,8 +40,8 @@ func TestFromSpec(t *testing.T) {
 	if u.RawSecret != wantRawSecret {
 		t.Errorf("RawSecret: got %q, want %q", u.RawSecret, wantRawSecret)
 	}
-	if got, err := u.ParseSecret(); err != nil {
-		t.Errorf("ParseSecret %q failed: %v", u.RawSecret, err)
+	if got, err := u.Secret(); err != nil {
+		t.Errorf("Secret %q failed: %v", u.RawSecret, err)
 	} else if string(got) != wantSecret {
 		t.Errorf("Secret: got %q, want %q", string(got), wantSecret)
 	}
