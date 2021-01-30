@@ -191,6 +191,27 @@ func TestFormatBounds(t *testing.T) {
 	})
 }
 
+func TestFormatAlphabet(t *testing.T) {
+	tests := []struct {
+		alphabet string
+		want     string
+	}{
+		{"XYZPDQ", "PQXPP"},
+		{"0123456789", "43645"},
+	}
+	for _, test := range tests {
+		cfg := Config{
+			Key:    "whatever",
+			Digits: 5,
+			Format: FormatAlphabet(test.alphabet),
+		}
+		got := cfg.HOTP(1)
+		if got != test.want {
+			t.Errorf("[%q].HOTP(1) failed: got %q, want %q", test.alphabet, got, test.want)
+		}
+	}
+}
+
 // digitsToLetters maps each decimal digit in s to the corresponding letter in
 // the range a..j. It will panic for any value outside this range.
 func digitsToLetters(s string) string {

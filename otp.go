@@ -140,3 +140,21 @@ func format(code uint64, width int) string {
 	}
 	return s[len(s)-width:]
 }
+
+// FormatAlphabet constructs a formatting function that maps code digits to the
+// coresponding letters of the given alphabet string.  Code digits are expanded
+// from least to most significant.
+func FormatAlphabet(alphabet string) func(uint64, int) string {
+	if alphabet == "" {
+		panic("empty formatting alphabet")
+	}
+	return func(code uint64, width int) string {
+		w := uint64(len(alphabet))
+		out := make([]byte, width)
+		for i := width - 1; i >= 0; i-- {
+			out[i] = alphabet[int(code%w)]
+			code /= w
+		}
+		return string(out)
+	}
+}
