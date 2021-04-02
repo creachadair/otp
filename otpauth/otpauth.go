@@ -146,7 +146,7 @@ func ParseURL(s string) (*URL, error) {
 		Period:    defaultPeriod,
 	}
 	if err := out.parseLabel(ps[1]); err != nil {
-		return nil, fmt.Errorf("invalid labe: %v", err)
+		return nil, fmt.Errorf("invalid label: %v", err)
 	}
 	if params == "" {
 		return out, nil
