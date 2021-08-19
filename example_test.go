@@ -40,12 +40,12 @@ func Example() {
 	// TOTP 86761489
 }
 
-func ExampleConfig_Format() {
+func ExampleConfig_customFormat() {
 	// Use settings compatible with Steam Guard: 5 characters and a custom alphabet.
 	cfg := otp.Config{
 		Digits:   5,
 		Format:   otp.FormatAlphabet("23456789BCDFGHJKMNPQRTVWXY"),
-		TimeStep: fixedTime(1248163264),
+		TimeStep: fixedTime(9876543210),
 	}
 	if err := cfg.ParseKey("CQKQ QEQR AAR7 77X5"); err != nil {
 		log.Fatalf("Parsing key: %v", err)
@@ -53,5 +53,5 @@ func ExampleConfig_Format() {
 
 	fmt.Println(cfg.TOTP())
 	// Output:
-	// C9WYW
+	// FKNK3
 }
