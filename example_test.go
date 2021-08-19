@@ -10,6 +10,8 @@ import (
 	"github.com/creachadair/otp"
 )
 
+func fixedTime(z uint64) func() uint64 { return func() uint64 { return z } }
+
 func Example() {
 	cfg := otp.Config{
 		Hash:   sha256.New, // default is sha1.New
@@ -18,7 +20,7 @@ func Example() {
 		// By default, time-based OTP generation uses time.Now.  You can plug in
 		// your own function to control how time steps are generated.
 		// This example uses a fixed time step so the output will be consistent.
-		TimeStep: func() uint64 { return 1 },
+		TimeStep: fixedTime(1),
 	}
 
 	// 2FA setup tools often present the shared secret as a base32 string.
@@ -36,4 +38,20 @@ func Example() {
 	// HOTP 1 86761489
 	//
 	// TOTP 86761489
+}
+
+func ExampleConfig_Format() {
+	// Use settings compatible with Steam Guard: 5 characters and a custom alphabet.
+	cfg := otp.Config{
+		Digits:   5,
+		Format:   otp.FormatAlphabet("23456789BCDFGHJKMNPQRTVWXY"),
+		TimeStep: fixedTime(1248163264),
+	}
+	if err := cfg.ParseKey("CQKQ QEQR AAR7 77X5"); err != nil {
+		log.Fatalf("Parsing key: %v", err)
+	}
+
+	fmt.Println(cfg.TOTP())
+	// Output:
+	// C9WYW
 }
