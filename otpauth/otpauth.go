@@ -31,7 +31,7 @@ const (
 // A URL contains the parsed representation of an otpauth URL.
 type URL struct {
 	Type      string // normalized to lowercase, e.g., "totp"
-	Issuer    string
+	Issuer    string // also called "provider" in some docs
 	Account   string // without provider prefix
 	RawSecret string // base32-encoded, no padding
 	Algorithm string // normalized to uppercase; default is "SHA1"
@@ -115,7 +115,8 @@ func (u *URL) parseLabel(s string) error {
 // values of the Type and Algorithm fields are not checked.
 //
 // Fields of the URL corresponding to unset parameters are populated with
-// default values as described on the URL struct.
+// default values as described on the URL struct. If a different issuer is set
+// on the label and in the parameters, the parameter takes priority.
 func ParseURL(s string) (*URL, error) {
 	// A scheme is not required, but if present it must be "otpauth".
 	if ps := strings.SplitN(s, "://", 2); len(ps) == 2 {
