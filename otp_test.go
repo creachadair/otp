@@ -143,7 +143,7 @@ func TestGoogleAuthCompat(t *testing.T) {
 			t.Errorf("ParseKey(%q) failed: %v", test.key, err)
 			continue
 		}
-		t.Run("StandardFormat", func(t *testing.T) {
+		t.Run("Standard-"+test.otp, func(t *testing.T) {
 			cfg := Config{Key: string(key)}
 			got := cfg.HOTP(test.counter)
 			if got != test.otp {
@@ -151,7 +151,7 @@ func TestGoogleAuthCompat(t *testing.T) {
 			}
 		})
 
-		t.Run("CustomFormat", func(t *testing.T) {
+		t.Run("Custom-"+test.otp, func(t *testing.T) {
 			cfg := Config{
 				Key: string(key),
 
