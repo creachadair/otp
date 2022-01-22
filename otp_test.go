@@ -60,6 +60,14 @@ var googleTests = []struct {
 	{"abcd efgh ijkl mnop", 3, "281014"},
 	{"abcd efgh ijkl mnop", 4, "709708"},
 	{"abcd efgh ijkl mnop", 5, "522086"},
+
+	// These are time-based codes. Enter the key in the authenticator app and
+	// select "time-based". Copy a code and use "date +%s" to get the time in
+	// seconds.  The default timestep is based on a 30-second window.
+	{"aaaa bbbb cccc dddd", 1642868750 / 30, "349451"},
+	{"aaaa bbbb cccc dddd", 1642868800 / 30, "349712"},
+	{"aaaa bbbb cccc dddd", 1642868822 / 30, "367384"},
+	{"aaaa bbbb cccc dddd", 1642869021 / 30, "436225"},
 }
 
 func (tc testCase) Run(t *testing.T, c Config, gen func(uint64) string) {
