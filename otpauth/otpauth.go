@@ -99,11 +99,17 @@ func (u *URL) parseLabel(s string) error {
 	if err != nil {
 		return err
 	}
-	if i := strings.Index(account, ":"); i > 0 {
-		u.Issuer = account[:i]
+	if i := strings.Index(account, ":"); i >= 0 {
+		u.Issuer = strings.TrimSpace(account[:i])
+		if u.Issuer == "" {
+			return errors.New("empty issuer")
+		}
 		account = account[i+1:]
 	}
 	u.Account = strings.TrimSpace(account)
+	if u.Account == "" {
+		return errors.New("empty account name")
+	}
 	return nil
 }
 
@@ -135,7 +141,8 @@ func ParseURL(s string) (*URL, error) {
 	}
 
 	// Require that type and label are both present and non-empty.
-	ps := strings.SplitN(typeLabel, "/", 2) // [TYPE, LABEL]
+	// Note that the "//" authority marker is treated as optional.
+	ps := strings.SplitN(strings.TrimPrefix(typeLabel, "//"), "/", 2) // [TYPE, LABEL]
 	if len(ps) != 2 || ps[0] == "" || ps[1] == "" {
 		return nil, errors.New("invalid type/label")
 	}
@@ -177,10 +184,9 @@ func ParseURL(s string) (*URL, error) {
 		}
 
 		// All other valid parameters require an integer argument.
+		// Defer error reporting so we report an unknown field first.
 		n, err := strconv.ParseUint(value, 10, 64)
-		if err != nil {
-			return nil, fmt.Errorf("invalid integer value %q", value)
-		}
+
 		switch ps[0] {
 		case "counter":
 			out.Counter = n
@@ -190,6 +196,9 @@ func ParseURL(s string) (*URL, error) {
 			out.Period = int(n)
 		default:
 			return nil, fmt.Errorf("invalid parameter %q", ps[0])
+		}
+		if err != nil {
+			return nil, fmt.Errorf("invalid integer value %q", value)
 		}
 	}
 	return out, nil

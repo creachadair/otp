@@ -3,6 +3,7 @@
 package otpauth_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/creachadair/otp/otpauth"
@@ -12,6 +13,7 @@ func TestFromSpec(t *testing.T) {
 	// Test vector adapted from
 	// https://github.com/google/google-authenticator/wiki/Key-Uri-Format
 	const base = `totp/ACME%20Co:john.doe@email.com?secret=JBSWY3DPEHPK3PXP&issuer=ACME%20Co&algorithm=SHA1&digits=6&period=30`
+	const part = "//" + base
 	const full = "otpauth://" + base
 
 	const (
@@ -26,7 +28,7 @@ func TestFromSpec(t *testing.T) {
 	)
 
 	// Check parsing with and without the scheme prefix.
-	for _, input := range []string{base, full} {
+	for _, input := range []string{base, part, full} {
 		t.Run("ParseURL", func(t *testing.T) {
 			u, err := otpauth.ParseURL(input)
 			if err != nil {
@@ -97,6 +99,42 @@ func TestString(t *testing.T) {
 		got := test.URL.String()
 		if got != test.want {
 			t.Errorf("Input: %+v\nWrong encoding:\n got: %q\nwant: %q", test.URL, got, test.want)
+		}
+	}
+}
+
+func TestParseeErrors(t *testing.T) {
+	tests := []struct {
+		input string
+		etext string
+	}{
+		{"http://www.bogus.com", "invalid scheme"},
+
+		{"otpauth://totp", "invalid type/label"},
+		{"otpauth://totp/", "invalid type/label"},
+		{"otpauth:///", "invalid type/label"},
+		{"otpauth:///label", "invalid type/label"},
+
+		{"otpauth://hotp/%xx", "invalid URL escape"},
+		{"otpauth://totp/foo?invalid=what", "invalid parameter"},
+		{"otpauth://totp/foo?digits=25&invalid=what", "invalid parameter"},
+
+		{"otpauth://totp/x:", "empty account name"},
+		{"otpauth://totp/:y", "empty issuer"},
+
+		{"otpauth://ok/a:b?digits=x", "invalid integer value"},
+		{"otpauth://ok/a:b?period=x", "invalid integer value"},
+		{"otpauth://ok/a:b?counter=x", "invalid integer value"},
+		{"otpauth://ok/a:b?algorithm=x%2x", "invalid value"},
+	}
+	for _, test := range tests {
+		u, err := otpauth.ParseURL(test.input)
+		if err == nil {
+			t.Errorf("ParseURL(%q): got %+v, wanted error", test.input, u)
+			continue
+		}
+		if got := err.Error(); !strings.Contains(got, test.etext) {
+			t.Errorf("ParseURL(%q): got error %v, wanted %q", test.input, err, test.etext)
 		}
 	}
 }
