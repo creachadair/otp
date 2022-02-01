@@ -11,12 +11,8 @@ import (
 func TestFromSpec(t *testing.T) {
 	// Test vector adapted from
 	// https://github.com/google/google-authenticator/wiki/Key-Uri-Format
-	const input = `otpauth://totp/ACME%20Co:john.doe@email.com?secret=JBSWY3DPEHPK3PXP&issuer=ACME%20Co&algorithm=SHA1&digits=6&period=30`
-
-	u, err := otpauth.ParseURL(input)
-	if err != nil {
-		t.Fatalf("ParseURL(%q) failed: %v", input, err)
-	}
+	const base = `totp/ACME%20Co:john.doe@email.com?secret=JBSWY3DPEHPK3PXP&issuer=ACME%20Co&algorithm=SHA1&digits=6&period=30`
+	const full = "otpauth://" + base
 
 	const (
 		wantType      = "totp"
@@ -28,31 +24,41 @@ func TestFromSpec(t *testing.T) {
 		wantDigits    = 6
 		wantPeriod    = 30
 	)
-	if u.Type != wantType {
-		t.Errorf("Type: got %q, want %q", u.Type, wantType)
-	}
-	if u.Issuer != wantIssuer {
-		t.Errorf("Issuer: got %q, want %q", u.Issuer, wantIssuer)
-	}
-	if u.Account != wantAccount {
-		t.Errorf("Account: got %q, want %q", u.Account, wantAccount)
-	}
-	if u.RawSecret != wantRawSecret {
-		t.Errorf("RawSecret: got %q, want %q", u.RawSecret, wantRawSecret)
-	}
-	if got, err := u.Secret(); err != nil {
-		t.Errorf("Secret %q failed: %v", u.RawSecret, err)
-	} else if string(got) != wantSecret {
-		t.Errorf("Secret: got %q, want %q", string(got), wantSecret)
-	}
-	if u.Algorithm != wantAlgorithm {
-		t.Errorf("Algorithm: got %q, want %q", u.Algorithm, wantAlgorithm)
-	}
-	if u.Digits != wantDigits {
-		t.Errorf("Digits: got %q, want %q", u.Digits, wantDigits)
-	}
-	if u.Period != wantPeriod {
-		t.Errorf("Period: got %q, want %q", u.Period, wantPeriod)
+
+	// Check parsing with and without the scheme prefix.
+	for _, input := range []string{base, full} {
+		t.Run("ParseURL", func(t *testing.T) {
+			u, err := otpauth.ParseURL(input)
+			if err != nil {
+				t.Fatalf("ParseURL(%q) failed: %v", input, err)
+			}
+			if u.Type != wantType {
+				t.Errorf("Type: got %q, want %q", u.Type, wantType)
+			}
+			if u.Issuer != wantIssuer {
+				t.Errorf("Issuer: got %q, want %q", u.Issuer, wantIssuer)
+			}
+			if u.Account != wantAccount {
+				t.Errorf("Account: got %q, want %q", u.Account, wantAccount)
+			}
+			if u.RawSecret != wantRawSecret {
+				t.Errorf("RawSecret: got %q, want %q", u.RawSecret, wantRawSecret)
+			}
+			if got, err := u.Secret(); err != nil {
+				t.Errorf("Secret %q failed: %v", u.RawSecret, err)
+			} else if string(got) != wantSecret {
+				t.Errorf("Secret: got %q, want %q", string(got), wantSecret)
+			}
+			if u.Algorithm != wantAlgorithm {
+				t.Errorf("Algorithm: got %q, want %q", u.Algorithm, wantAlgorithm)
+			}
+			if u.Digits != wantDigits {
+				t.Errorf("Digits: got %q, want %q", u.Digits, wantDigits)
+			}
+			if u.Period != wantPeriod {
+				t.Errorf("Period: got %q, want %q", u.Period, wantPeriod)
+			}
+		})
 	}
 }
 
