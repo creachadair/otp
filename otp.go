@@ -18,6 +18,28 @@ import (
 	"time"
 )
 
+// DefaultTOTP generates a TOTP for the current time step using the default
+// settings (compatible with Google Authenticator) based on the given key.
+// An error is reported if the key is invalid.
+func DefaultTOTP(key string) (string, error) {
+	var std Config
+	if err := std.ParseKey(key); err != nil {
+		return "", err
+	}
+	return std.TOTP(), nil
+}
+
+// DefaultHOTP generates an HTOP for the specified counter using the default
+// settings (compatible with Google Authenticator) based on the given key.
+// An error is reported if the key is invalid.
+func DefaultHOTP(key string, counter uint64) (string, error) {
+	var std Config
+	if err := std.ParseKey(key); err != nil {
+		return "", err
+	}
+	return std.HOTP(counter), nil
+}
+
 // TimeWindow returns a time step generator that yields the number of n-second
 // intervals elapsed at the current wallclock time since the Unix epoch.
 func TimeWindow(n int) func() uint64 {

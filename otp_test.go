@@ -96,6 +96,18 @@ func TestHOTP(t *testing.T) {
 	for _, test := range tests {
 		test.Run(t, cfg, cfg.HOTP)
 	}
+
+	for _, test := range googleTests {
+		got, err := DefaultHOTP(test.key, test.counter)
+		if err != nil {
+			t.Errorf("Invalid key: %v", err)
+		} else if got != test.otp {
+			t.Errorf("Wrong OTP: got %q, want %q", got, test.otp)
+		}
+		if t.Failed() {
+			t.Logf("DefaultHOTP(%q, %v)", test.key, test.counter)
+		}
+	}
 }
 
 func TestNext(t *testing.T) {
