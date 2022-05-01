@@ -64,7 +64,7 @@ func TestFromSpec(t *testing.T) {
 	}
 }
 
-func TestString(t *testing.T) {
+func TestEncoding(t *testing.T) {
 	tests := []struct {
 		*otpauth.URL
 		want string
@@ -96,10 +96,32 @@ func TestString(t *testing.T) {
 		}, "otpauth://random/two%20kittens:in@trench-coat.org?digits=8&issuer=two%20kittens&period=60"},
 	}
 	for _, test := range tests {
-		got := test.URL.String()
-		if got != test.want {
-			t.Errorf("Input: %+v\nWrong encoding:\n got: %q\nwant: %q", test.URL, got, test.want)
-		}
+		t.Run("String", func(t *testing.T) {
+			got := test.URL.String()
+			if got != test.want {
+				t.Errorf("Input: %+v\nWrong encoding:\n got: %q\nwant: %q", test.URL, got, test.want)
+			}
+		})
+		t.Run("Text", func(t *testing.T) {
+			// The URL should encode to the same format as String.
+			text, err := test.URL.MarshalText()
+			if err != nil {
+				t.Fatalf("MarshalText failed: %v", err)
+			}
+			if got := string(text); got != test.want {
+				t.Errorf("MarshalText: got %#q, want %#q", got, test.want)
+			}
+
+			// Unmarshaling the string should result in an equivalent URL.
+			// N.B. not necessarily equal, because of auto-population of defaults.
+			var cmp otpauth.URL
+			if err := cmp.UnmarshalText(text); err != nil {
+				t.Fatalf("UnmarshalText failed: %v", err)
+			}
+			if got, want := cmp.String(), test.URL.String(); got != want {
+				t.Errorf("UNmarshalText: got %#q, want %#q", got, want)
+			}
+		})
 	}
 }
 

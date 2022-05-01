@@ -86,6 +86,23 @@ func (u *URL) String() string {
 	return sb.String()
 }
 
+// UnmarshalText implements the encoding.TextUnmarshaler interface.
+// It expects its input to be a URL in the standard encoding.
+func (u *URL) UnmarshalText(data []byte) error {
+	p, err := ParseURL(string(data))
+	if err != nil {
+		return err
+	}
+	*u = *p // a shallow copy is safe, there are no pointers
+	return nil
+}
+
+// MarshalText implemens the encoding.TextMarshaler interface.
+// It emits the same URL string produced by the String method.
+func (u *URL) MarshalText() ([]byte, error) {
+	return []byte(u.String()), nil
+}
+
 func (u *URL) labelString() string {
 	label := url.PathEscape(u.Account)
 	if u.Issuer != "" {
