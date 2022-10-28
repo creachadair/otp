@@ -60,8 +60,8 @@ type Config struct {
 	Digits   int              // number of OTP digits (default 6)
 
 	// If set, this function is called with the counter hash to format a code of
-	// the specified width. By default, the code is truncated per RFC 4226
-	// (using the Truncate function) and formatted as decimal digits (0..9).
+	// the specified length. By default, the code is truncated per RFC 4226 and
+	// formatted as decimal digits (0..9).
 	//
 	// If Format returns a string of the wrong length, code generation panics.
 	Format func(hash []byte, length int) string
