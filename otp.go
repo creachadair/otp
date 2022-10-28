@@ -10,6 +10,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/base32"
+	"encoding/base64"
 	"encoding/binary"
 	"fmt"
 	"hash"
@@ -59,6 +60,7 @@ type Config struct {
 	Counter  uint64           // HOTP counter value
 	Digits   int              // number of OTP digits (default 6)
 
+	NoTrunc bool
 	// If set, this function is called with the truncated counter hash to format
 	// a code of the specified width. By default, the code is formatted as
 	// decimal digits (0..9).
@@ -92,7 +94,19 @@ func ParseKey(s string) ([]byte, error) {
 // HOTP returns the HOTP code for the specified counter value.
 func (c Config) HOTP(counter uint64) string {
 	nd := c.digits()
-	code := c.format(truncate(c.hmac(counter)), nd)
+	var code string
+
+	if c.NoTrunc {
+		cc := base64.StdEncoding.EncodeToString(c.hmac(counter))
+		if c.digits() >= len(cc) {
+			code = cc
+		} else {
+			code = cc[:len(cc)-(len(cc)-c.digits())]
+		}
+	} else {
+		code = c.format(truncate(c.hmac(counter)), nd)
+	}
+
 	if len(code) != nd {
 		panic(fmt.Sprintf("invalid code length: got %d, want %d", len(code), nd))
 	}
