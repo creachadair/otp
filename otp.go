@@ -166,7 +166,7 @@ func formatDecimal(hash []byte, width int) string {
 }
 
 // FormatAlphabet constructs a formatting function that truncates the counter
-// hash per RFC 4226 and assigned code digits using the letters of the given
+// hash per RFC 4226 and assigns code digits using the letters of the given
 // alphabet string.  Code digits are expanded from most to least significant.
 func FormatAlphabet(alphabet string) func([]byte, int) string {
 	if alphabet == "" {
