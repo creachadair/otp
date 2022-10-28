@@ -98,7 +98,8 @@ func TestGoogleAuthCompat(t *testing.T) {
 				Key: string(key),
 
 				// Map digits to corresponding letters 0=a, 1=b, etc.
-				Format: func(v uint64, nd int) string {
+				Format: func(hash []byte, nd int) string {
+					v := otp.Truncate(hash)
 					buf := make([]byte, nd)
 					for i := nd - 1; i >= 0; i-- {
 						buf[i] = byte(v%10) + byte('a')
@@ -124,7 +125,7 @@ func TestFormatBounds(t *testing.T) {
 		// Request 5 digits, but generate 8.
 		// This should cause code generation to panic.
 		Digits: 5,
-		Format: func(v uint64, nd int) string {
+		Format: func(_ []byte, nd int) string {
 			return "12345678" // N.B. not 5
 		},
 	}
