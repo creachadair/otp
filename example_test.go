@@ -4,6 +4,7 @@ package otp_test
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"log"
 
@@ -54,4 +55,22 @@ func ExampleConfig_customFormat() {
 	fmt.Println(cfg.TOTP())
 	// Output:
 	// FKNK3
+}
+
+func ExampleConfig_rawFormat() {
+	// The default formatting functions use the RFC 4226 truncation rules, but a
+	// custom formatter may do whatever it likes with the HMAC value.
+	// This example converts to base64.
+	cfg := otp.Config{
+		Digits: 10,
+		Format: func(hash []byte, nb int) string {
+			return base64.StdEncoding.EncodeToString(hash)[:nb]
+		},
+	}
+	if err := cfg.ParseKey("MNQWE YTBM5 SAYTS MVQXI"); err != nil {
+		log.Fatalf("Parsing key: %v", err)
+	}
+	fmt.Println(cfg.HOTP(17))
+	// Output:
+	// j0fLbXLh1Z
 }
