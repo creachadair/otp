@@ -43,7 +43,7 @@ func (tc testCase) Run(t *testing.T, c Config, gen func(uint64) string) {
 	t.Helper()
 
 	hmac := c.hmac(tc.counter)
-	trunc := truncate(hmac)
+	trunc := Truncate(hmac)
 	hexDigest := hex.EncodeToString(hmac)
 	otp := gen(tc.counter)
 
