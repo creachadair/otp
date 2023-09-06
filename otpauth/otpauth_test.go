@@ -119,7 +119,7 @@ func TestEncoding(t *testing.T) {
 				t.Fatalf("UnmarshalText failed: %v", err)
 			}
 			if got, want := cmp.String(), test.URL.String(); got != want {
-				t.Errorf("UNmarshalText: got %#q, want %#q", got, want)
+				t.Errorf("UnmarshalText: got %#q, want %#q", got, want)
 			}
 		})
 	}
