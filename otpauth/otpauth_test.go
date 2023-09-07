@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/creachadair/otp/otpauth"
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestFromSpec(t *testing.T) {
@@ -16,16 +17,17 @@ func TestFromSpec(t *testing.T) {
 	const part = "//" + base
 	const full = "otpauth://" + base
 
-	const (
-		wantType      = "totp"
-		wantIssuer    = "ACME Co"
-		wantAccount   = "john.doe@email.com"
-		wantRawSecret = "JBSWY3DPEHPK3PXP"
-		wantSecret    = "Hello!\xde\xad\xbe\xef"
-		wantAlgorithm = "SHA1"
-		wantDigits    = 6
-		wantPeriod    = 30
-	)
+	const wantSecret = "Hello!\xde\xad\xbe\xef"
+	want := &otpauth.URL{
+		Type:      "totp",
+		Issuer:    "ACME Co",
+		Account:   "john.doe@email.com",
+		RawSecret: "JBSWY3DPEHPK3PXP",
+		Algorithm: "SHA1",
+		Digits:    6,
+		Period:    30,
+		Counter:   0,
+	}
 
 	// Check parsing with and without the scheme prefix.
 	for _, input := range []string{base, part, full} {
@@ -34,31 +36,13 @@ func TestFromSpec(t *testing.T) {
 			if err != nil {
 				t.Fatalf("ParseURL(%q) failed: %v", input, err)
 			}
-			if u.Type != wantType {
-				t.Errorf("Type: got %q, want %q", u.Type, wantType)
-			}
-			if u.Issuer != wantIssuer {
-				t.Errorf("Issuer: got %q, want %q", u.Issuer, wantIssuer)
-			}
-			if u.Account != wantAccount {
-				t.Errorf("Account: got %q, want %q", u.Account, wantAccount)
-			}
-			if u.RawSecret != wantRawSecret {
-				t.Errorf("RawSecret: got %q, want %q", u.RawSecret, wantRawSecret)
+			if diff := cmp.Diff(u, want); diff != "" {
+				t.Errorf("Wrong URL (-got, +want):\n%s", diff)
 			}
 			if got, err := u.Secret(); err != nil {
 				t.Errorf("Secret %q failed: %v", u.RawSecret, err)
 			} else if string(got) != wantSecret {
 				t.Errorf("Secret: got %q, want %q", string(got), wantSecret)
-			}
-			if u.Algorithm != wantAlgorithm {
-				t.Errorf("Algorithm: got %q, want %q", u.Algorithm, wantAlgorithm)
-			}
-			if u.Digits != wantDigits {
-				t.Errorf("Digits: got %q, want %q", u.Digits, wantDigits)
-			}
-			if u.Period != wantPeriod {
-				t.Errorf("Period: got %q, want %q", u.Period, wantPeriod)
 			}
 		})
 	}
