@@ -5,6 +5,7 @@ package otp_test
 import (
 	"testing"
 
+	"github.com/creachadair/mtest"
 	"github.com/creachadair/otp"
 )
 
@@ -130,15 +131,7 @@ func TestFormatBounds(t *testing.T) {
 		},
 	}
 	t.Run("Panic", func(t *testing.T) {
-		var code string
-		defer func() {
-			p := recover()
-			if p == nil {
-				t.Fatalf("Expected failure; got %q", code)
-			}
-			t.Logf("Got expected panic: %v", p)
-		}()
-		code = cfg.TOTP()
+		mtest.MustPanic(t, func() { t.Logf("Got code: %v", cfg.TOTP()) })
 	})
 }
 
