@@ -5,7 +5,7 @@ package otp_test
 import (
 	"testing"
 
-	"github.com/creachadair/mtest"
+	"github.com/creachadair/mds/mtest"
 	"github.com/creachadair/otp"
 )
 
