@@ -10,39 +10,66 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestFromSpec(t *testing.T) {
-	// Test vector adapted from
-	// https://github.com/google/google-authenticator/wiki/Key-Uri-Format
-	const base = `totp/ACME%20Co:john.doe@email.com?secret=JBSWY3DPEHPK3PXP&issuer=ACME%20Co&algorithm=SHA1&digits=6&period=30`
-	const part = "//" + base
-	const full = "otpauth://" + base
+func TestValid(t *testing.T) {
+	tests := []struct {
+		name   string
+		input  string
+		secret string
+		want   *otpauth.URL
+	}{
+		// Test vector adapted from
+		// https://github.com/google/google-authenticator/wiki/Key-Uri-Format
+		{"SpecExample",
+			`otpauth://totp/ACME%20Co:john.doe@email.com?secret=JBSWY3DPEHPK3PXP&issuer=ACME%20Co&algorithm=SHA1&digits=6&period=30`,
+			"Hello!\xde\xad\xbe\xef",
+			&otpauth.URL{
+				Type: "totp", Issuer: "ACME Co", Account: "john.doe@email.com", RawSecret: "JBSWY3DPEHPK3PXP",
+				Algorithm: "SHA1", Digits: 6, Period: 30, Counter: 0,
+			}},
 
-	const wantSecret = "Hello!\xde\xad\xbe\xef"
-	want := &otpauth.URL{
-		Type:      "totp",
-		Issuer:    "ACME Co",
-		Account:   "john.doe@email.com",
-		RawSecret: "JBSWY3DPEHPK3PXP",
-		Algorithm: "SHA1",
-		Digits:    6,
-		Period:    30,
-		Counter:   0,
+		{"AllDefaults",
+			`otpauth://totp/minsc@boo.com?secret=M5XSAZTPOIQHI2DFEBSXSZLT`,
+			"go for the eyes",
+			&otpauth.URL{
+				Type: "totp", Account: "minsc@boo.com", RawSecret: "M5XSAZTPOIQHI2DFEBSXSZLT",
+				Algorithm: "SHA1", Digits: 6, Period: 30,
+			}},
+
+		// Verify that places where extra whitespace is allowed, e.g., around the
+		// name of the issuer or after the ":" separating it from the account,
+		// are properly handled.
+		{"ExtraSpace",
+			`otpauth://hotp/fippy%20darkpaw%20%3a%20%20gnoll%20runner?digits=8&period=100&counter=5`,
+			"",
+			&otpauth.URL{
+				Type: "hotp", Issuer: "fippy darkpaw", Account: "gnoll runner",
+				Algorithm: "SHA1", Digits: 8, Period: 100, Counter: 5,
+			}},
 	}
 
-	// Check parsing with and without the scheme prefix.
-	for _, input := range []string{base, part, full} {
-		t.Run("ParseURL", func(t *testing.T) {
-			u, err := otpauth.ParseURL(input)
-			if err != nil {
-				t.Fatalf("ParseURL(%q) failed: %v", input, err)
-			}
-			if diff := cmp.Diff(u, want); diff != "" {
-				t.Errorf("Wrong URL (-got, +want):\n%s", diff)
-			}
-			if got, err := u.Secret(); err != nil {
-				t.Errorf("Secret %q failed: %v", u.RawSecret, err)
-			} else if string(got) != wantSecret {
-				t.Errorf("Secret: got %q, want %q", string(got), wantSecret)
+	for _, tc := range tests {
+		// Check parsing with and without the scheme prefix.
+		full := tc.input
+		part := strings.TrimPrefix(full, "otpauth:")
+		base := strings.TrimPrefix(part, "//")
+
+		t.Run(tc.name, func(t *testing.T) {
+			for _, url := range []string{base, part, full} {
+				u, err := otpauth.ParseURL(url)
+				if err != nil {
+					t.Errorf("ParseURL(%q): unexpected error: %v", url, err)
+					continue
+				}
+				if diff := cmp.Diff(u, tc.want); diff != "" {
+					t.Errorf("Wrong URL (-got, +want):\n%s", diff)
+					continue
+				}
+				got, err := u.Secret()
+				if err != nil {
+					t.Errorf("Parsing secret %q: unexpected error: %v", u.RawSecret, err)
+				} else if string(got) != tc.secret {
+					t.Errorf("Parsed secret: got %q, want %q", string(got), tc.secret)
+				}
 			}
 		})
 	}
