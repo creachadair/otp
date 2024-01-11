@@ -3,6 +3,11 @@
 package otp_test
 
 import (
+	"crypto/sha1"
+	"crypto/sha256"
+	"crypto/sha512"
+	"fmt"
+	"hash"
 	"testing"
 
 	"github.com/creachadair/mds/mtest"
@@ -156,6 +161,58 @@ func TestFormatAlphabet(t *testing.T) {
 	}
 }
 
+var testHash = map[string]struct {
+	key  string
+	cons func() hash.Hash
+}{
+	"SHA1":   {"12345678901234567890", sha1.New},
+	"SHA256": {"12345678901234567890123456789012", sha256.New},
+	"SHA512": {"1234567890123456789012345678901234567890123456789012345678901234", sha512.New},
+}
+
+var testVectors = []struct {
+	alg     string
+	seconds uint64
+	want    string
+}{
+	// Extracted from RFC 6238 Table 1 (see below).
+	{"SHA1", 59, "94287082"},
+	{"SHA256", 59, "46119246"},
+	{"SHA512", 59, "90693936"},
+	{"SHA1", 1111111109, "07081804"},
+	{"SHA256", 1111111109, "68084774"},
+	{"SHA512", 1111111109, "25091201"},
+	{"SHA1", 1111111111, "14050471"},
+	{"SHA256", 1111111111, "67062674"},
+	{"SHA512", 1111111111, "99943326"},
+	{"SHA1", 1234567890, "89005924"},
+	{"SHA256", 1234567890, "91819424"},
+	{"SHA512", 1234567890, "93441116"},
+	{"SHA1", 2000000000, "69279037"},
+	{"SHA256", 2000000000, "90698825"},
+	{"SHA512", 2000000000, "38618901"},
+	{"SHA1", 20000000000, "65353130"},
+	{"SHA256", 20000000000, "77737706"},
+	{"SHA512", 20000000000, "47863826"},
+}
+
+func TestRFC6238Vectors(t *testing.T) {
+	for _, tc := range testVectors {
+		t.Run(fmt.Sprintf("%s-%d-%s", tc.alg, tc.seconds, tc.want), func(t *testing.T) {
+			h := testHash[tc.alg]
+			step := tc.seconds / 30
+
+			cfg := otp.Config{Key: h.key, Hash: h.cons, TimeStep: fixedTime(step), Digits: len(tc.want)}
+			if got := cfg.HOTP(step); got != tc.want {
+				t.Errorf("HOTP(%d [%x]): : got %q, want %q", tc.seconds, step, got, tc.want)
+			}
+			if got := cfg.TOTP(); got != tc.want {
+				t.Errorf("TOTP at %d [%x]: got %q, want %q", tc.seconds, step, got, tc.want)
+			}
+		})
+	}
+}
+
 // digitsToLetters maps each decimal digit in s to the corresponding letter in
 // the range a..j. It will panic for any value outside this range.
 func digitsToLetters(s string) string {
@@ -212,25 +269,54 @@ decimal) and then the HOTP value.
 This section provides test values that can be used for the HOTP time-based
 variant algorithm interoperability test.
 
-The test token shared secret uses the ASCII string value
-"12345678901234567890".  With Time Step X = 30, and the Unix epoch as the
-initial value to count time steps, where T0 = 0, the TOTP algorithm will
-display the following values for specified modes and timestamps.
+The test token shared secret uses the ASCII string value:
 
-+-------------+--------------+------------------+----------+--------+
-|  Time (sec) |   UTC Time   | Value of T (hex) |   TOTP   |  Mode  |
-+-------------+--------------+------------------+----------+--------+
-|      59     |  1970-01-01  | 0000000000000001 | 94287082 |  SHA1  |
-|             |   00:00:59   |                  |          |        |
-|  1111111109 |  2005-03-18  | 00000000023523EC | 07081804 |  SHA1  |
-|             |   01:58:29   |                  |          |        |
-|  1111111111 |  2005-03-18  | 00000000023523ED | 14050471 |  SHA1  |
-|             |   01:58:31   |                  |          |        |
-|  1234567890 |  2009-02-13  | 000000000273EF07 | 89005924 |  SHA1  |
-|             |   23:31:30   |                  |          |        |
-|  2000000000 |  2033-05-18  | 0000000003F940AA | 69279037 |  SHA1  |
-|             |   03:33:20   |                  |          |        |
-| 20000000000 |  2603-10-11  | 0000000027BC86AA | 65353130 |  SHA1  |
-|             |   11:33:20   |                  |          |        |
-+-------------+--------------+------------------+----------+--------+
+ SHA1    12345678901234567890
+ SHA256  12345678901234567890123456789012
+ SHA512  1234567890123456789012345678901234567890123456789012345678901234
+
+With Time Step X = 30, and the Unix epoch as the initial value to count time
+steps, where T0 = 0, the TOTP algorithm will display the following values for
+specified modes and timestamps.
+
+  +-------------+--------------+------------------+----------+--------+
+  |  Time (sec) |   UTC Time   | Value of T (hex) |   TOTP   |  Mode  |
+  +-------------+--------------+------------------+----------+--------+
+  |      59     |  1970-01-01  | 0000000000000001 | 94287082 |  SHA1  |
+  |             |   00:00:59   |                  |          |        |
+  |      59     |  1970-01-01  | 0000000000000001 | 46119246 | SHA256 |
+  |             |   00:00:59   |                  |          |        |
+  |      59     |  1970-01-01  | 0000000000000001 | 90693936 | SHA512 |
+  |             |   00:00:59   |                  |          |        |
+  |  1111111109 |  2005-03-18  | 00000000023523EC | 07081804 |  SHA1  |
+  |             |   01:58:29   |                  |          |        |
+  |  1111111109 |  2005-03-18  | 00000000023523EC | 68084774 | SHA256 |
+  |             |   01:58:29   |                  |          |        |
+  |  1111111109 |  2005-03-18  | 00000000023523EC | 25091201 | SHA512 |
+  |             |   01:58:29   |                  |          |        |
+  |  1111111111 |  2005-03-18  | 00000000023523ED | 14050471 |  SHA1  |
+  |             |   01:58:31   |                  |          |        |
+  |  1111111111 |  2005-03-18  | 00000000023523ED | 67062674 | SHA256 |
+  |             |   01:58:31   |                  |          |        |
+  |  1111111111 |  2005-03-18  | 00000000023523ED | 99943326 | SHA512 |
+  |             |   01:58:31   |                  |          |        |
+  |  1234567890 |  2009-02-13  | 000000000273EF07 | 89005924 |  SHA1  |
+  |             |   23:31:30   |                  |          |        |
+  |  1234567890 |  2009-02-13  | 000000000273EF07 | 91819424 | SHA256 |
+  |             |   23:31:30   |                  |          |        |
+  |  1234567890 |  2009-02-13  | 000000000273EF07 | 93441116 | SHA512 |
+  |             |   23:31:30   |                  |          |        |
+  |  2000000000 |  2033-05-18  | 0000000003F940AA | 69279037 |  SHA1  |
+  |             |   03:33:20   |                  |          |        |
+  |  2000000000 |  2033-05-18  | 0000000003F940AA | 90698825 | SHA256 |
+  |             |   03:33:20   |                  |          |        |
+  |  2000000000 |  2033-05-18  | 0000000003F940AA | 38618901 | SHA512 |
+  |             |   03:33:20   |                  |          |        |
+  | 20000000000 |  2603-10-11  | 0000000027BC86AA | 65353130 |  SHA1  |
+  |             |   11:33:20   |                  |          |        |
+  | 20000000000 |  2603-10-11  | 0000000027BC86AA | 77737706 | SHA256 |
+  |             |   11:33:20   |                  |          |        |
+  | 20000000000 |  2603-10-11  | 0000000027BC86AA | 47863826 | SHA512 |
+  |             |   11:33:20   |                  |          |        |
+  +-------------+--------------+------------------+----------+--------+
 */
