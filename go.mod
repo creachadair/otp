@@ -6,4 +6,4 @@ toolchain go1.21.2
 
 require github.com/google/go-cmp v0.6.0
 
-require github.com/creachadair/mds v0.8.2
+require github.com/creachadair/mds v0.10.4
