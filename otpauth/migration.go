@@ -50,21 +50,24 @@ I don't want to take a dependency on protobuf, since that pulls in a lot of
 other expensive Google nonsense, but fortunately the message structure is
 fairly simple:
 
-	message Content {
-	   repeated Params params = 1;
+   message Content {
+      repeated Params params = 1;
 
-	   // ... other fields not of interest.
-	}
+      // ... other fields not of interest.
+      // If you're exporting more data than can fit in one QR code, the app may
+      // split up the export into multiple codes. There are some fields here to
+      // keep track of that, but they aren't relevant here.
+   }
 
-	message Params {
-	   bytes  secret    = 1;
-	   string account   = 2;
-	   string issuer    = 3;
-	   int32  algorithm = 4;  // 0: unspec, 1: SHA1, 2: SHA256, 3: SHA512, 4: MD5
-	   int32  digits    = 5;  // 0: unspec, 1: 6 digits, 2: 8 digits (typical Google)
-	   int32  type      = 6;  // 0: unspec, 1: HOTP, 2: TOTP
-	   uint64 counter   = 7;
-	}
+   message Params {
+      bytes  secret    = 1;
+      string account   = 2;
+      string issuer    = 3;
+      int32  algorithm = 4;  // 0: unspec, 1: SHA1, 2: SHA256, 3: SHA512, 4: MD5
+      int32  digits    = 5;  // 0: unspec, 1: 6 digits, 2: 8 digits (typical Google)
+      int32  type      = 6;  // 0: unspec, 1: HOTP, 2: TOTP
+      uint64 counter   = 7;
+   }
 
 So here we just unpack the wire format directly.
 */
