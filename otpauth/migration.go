@@ -19,10 +19,10 @@ import (
 //
 //	otpauth-migration://offline?data=<content>
 //
-// The content is a protocol buffer message encoded as base64 in URL encoding.
-// Note that a single migration URL may encode multiple OTP settings; on
-// success this function returns all the otpauth URLs encoded by the content.
-// It will always return at least one URL, or report an error.
+// The content is a protocol buffer message encoded as base64 in standard
+// encoding.  Note that a single migration URL may encode multiple OTP
+// settings; on success this function returns all the otpauth URLs encoded by
+// the content.  It will always return at least one URL, or report an error.
 func ParseMigrationURL(s string) ([]*URL, error) {
 	rest, ok := strings.CutPrefix(s, "otpauth-migration://")
 	if !ok {
@@ -36,7 +36,7 @@ func ParseMigrationURL(s string) ([]*URL, error) {
 	if err != nil {
 		return nil, fmt.Errorf("invalid data: %w", err)
 	}
-	bits, err := base64.URLEncoding.DecodeString(dec)
+	bits, err := base64.StdEncoding.DecodeString(dec)
 	if err != nil {
 		return nil, fmt.Errorf("invalid base64: %w", err)
 	}

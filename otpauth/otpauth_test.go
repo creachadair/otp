@@ -173,20 +173,31 @@ func TestParseeErrors(t *testing.T) {
 }
 
 func TestParseMigrationURL(t *testing.T) {
-	// Test input synthesized using Google Authenticator:
+	// Test input synthesized using Google Authenticator.  To re-generate this
+	// test example:
 	//
-	//  - Create a new entry named "test" with the key "fuzzlebuzzlegibbledibble".
-	//  - Export the entry as a QR code.
+	//  - Create a new entry named "test 1" with the key "fuzzlebuzzlegibbledibble", counter-based.
+	//    Generate 3 codes from this (advancing the counter from 0 to 3).
+	//  - Create a new entry named "test 2" with the key "applepieispeachy", time-based.
+	//  - Export these two entries together as a single QR code.
 	//  - Parse the QR code to export the migration URL.
 	//
-	u, err := otpauth.ParseMigrationURL(`otpauth-migration://offline?data=Ch0KDy0zlZA0zlZDICFZBoCFZBIEdGVzdCABKAEwAhACGAEgAA%3D%3D`)
+	u, err := otpauth.ParseMigrationURL(`otpauth-migration://offline?data=CiEKDy0zlZA0zlZDICFZBoCFZBIGdGVzdCAxIAEoATABOAMKGgoKA96yPQREnkAI%2BBIGdGVzdCAyIAEoATACEAIYASAA`)
 	if err != nil {
 		t.Fatalf("ParseMigrationURL: unexpected error: %v", err)
 	}
 	if diff := cmp.Diff(u, []*otpauth.URL{{
-		Type:      "TOTP",
-		Account:   "test",
+		Type:      "HOTP",
+		Account:   "test 1",
 		RawSecret: "FUZZLEBUZZLEGIBBLEDIBBLE",
+		Algorithm: "SHA1",
+		Digits:    6,
+		Counter:   3,
+		Period:    30, // default
+	}, {
+		Type:      "TOTP",
+		Account:   "test 2",
+		RawSecret: "APPLEPIEISPEACHY",
 		Algorithm: "SHA1",
 		Digits:    6,
 		Period:    30, // default
