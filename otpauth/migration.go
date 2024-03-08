@@ -46,8 +46,8 @@ func ParseMigrationURL(s string) ([]*URL, error) {
 /*
 The content of a migration URL is a wire-format protocol buffer message.
 
-I don't want to pull in a dependency on protobuf, since that pulls in a log
-of other expensive Google nonsense, but fortunately the message structure is
+I don't want to take a dependency on protobuf, since that pulls in a lot of
+other expensive Google nonsense, but fortunately the message structure is
 fairly simple:
 
 	message Content {
