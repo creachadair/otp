@@ -171,3 +171,26 @@ func TestParseeErrors(t *testing.T) {
 		}
 	}
 }
+
+func TestParseMigrationURL(t *testing.T) {
+	// Test input synthesized using Google Authenticator:
+	//
+	//  - Create a new entry named "test" with the key "fuzzlebuzzlegibbledibble".
+	//  - Export the entry as a QR code.
+	//  - Parse the QR code to export the migration URL.
+	//
+	u, err := otpauth.ParseMigrationURL(`otpauth-migration://offline?data=Ch0KDy0zlZA0zlZDICFZBoCFZBIEdGVzdCABKAEwAhACGAEgAA%3D%3D`)
+	if err != nil {
+		t.Fatalf("ParseMigrationURL: unexpected error: %v", err)
+	}
+	if diff := cmp.Diff(u, []*otpauth.URL{{
+		Type:      "TOTP",
+		Account:   "test",
+		RawSecret: "FUZZLEBUZZLEGIBBLEDIBBLE",
+		Algorithm: "SHA1",
+		Digits:    6,
+		Period:    30, // default
+	}}); diff != "" {
+		t.Errorf("Parsed (-got, +want):\n%s", diff)
+	}
+}
