@@ -143,9 +143,9 @@ func parseParams(data []byte) (*URL, error) {
 		case typeField:
 			switch v, _ := binary.Uvarint(s.Data()); v {
 			case 1:
-				out.Type = "HOTP"
+				out.Type = "hotp"
 			case 2:
-				out.Type = "TOTP"
+				out.Type = "totp"
 			default:
 				return nil, fmt.Errorf("unknown type code %d", v)
 			}

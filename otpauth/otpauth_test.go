@@ -187,7 +187,7 @@ func TestParseMigrationURL(t *testing.T) {
 		t.Fatalf("ParseMigrationURL: unexpected error: %v", err)
 	}
 	if diff := cmp.Diff(u, []*otpauth.URL{{
-		Type:      "HOTP",
+		Type:      "hotp",
 		Account:   "test 1",
 		RawSecret: "FUZZLEBUZZLEGIBBLEDIBBLE",
 		Algorithm: "SHA1",
@@ -195,7 +195,7 @@ func TestParseMigrationURL(t *testing.T) {
 		Counter:   3,
 		Period:    30, // default
 	}, {
-		Type:      "TOTP",
+		Type:      "totp",
 		Account:   "test 2",
 		RawSecret: "APPLEPIEISPEACHY",
 		Algorithm: "SHA1",
