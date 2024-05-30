@@ -1,11 +1,11 @@
 module github.com/creachadair/otp
 
-go 1.21
+go 1.22
 
-toolchain go1.21.2
+toolchain go1.22.3
 
 require github.com/google/go-cmp v0.6.0
 
 require github.com/creachadair/mds v0.14.7
 
-require github.com/creachadair/wirepb v0.0.0-20240308033959-6f4bf728f592
+require github.com/creachadair/wirepb v0.0.0-20240525191938-8530265c0822
