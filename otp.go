@@ -52,7 +52,10 @@ var timeWindow30 = TimeWindow(30) // default 30-second window
 // The only required field is Key. The other fields may be omitted, and will
 // use default values compatible with the Google authenticator.
 type Config struct {
-	Key string // shared secret between server and user (required)
+	// Key is the shared secret used to generate OTP codes.
+	// This field must be set for codes to be generated.
+	// The value must not be encoded in base32 or similar.
+	Key string
 
 	// Hash, if non-nil, is used to construct the hash for OTP generation.
 	// If nil, the default is sha1.New.
