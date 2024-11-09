@@ -54,14 +54,25 @@ var timeWindow30 = TimeWindow(30) // default 30-second window
 type Config struct {
 	Key string // shared secret between server and user (required)
 
-	Hash     func() hash.Hash // hash constructor (default is sha1.New)
-	TimeStep func() uint64    // TOTP time step (default is TimeWindow(30))
-	Counter  uint64           // HOTP counter value
-	Digits   int              // number of OTP digits (default 6)
+	// Hash, if non-nil, is used to construct the hash for OTP generation.
+	// If nil, the default is sha1.New.
+	Hash func() hash.Hash
 
-	// If set, this function is called with the counter hash to format a code of
-	// the specified length. By default, the code is truncated per RFC 4226 and
-	// formatted as decimal digits (0..9).
+	// TimeStep, if non-nil, returns the current time window to use for TOTP
+	// generation each time it is called. If nil, TimeWindow(30) is used.
+	TimeStep func() uint64
+
+	// Counter is the current HOTP counter value. It is incremented each time
+	// the Next method is called.
+	Counter uint64
+
+	// Digits indicates the number of digits a generated code will have.
+	// If zero or negative, the default is 6.
+	Digits int
+
+	// Format, if set, is called with the counter hash to format a code of the
+	// specified length. By default, the code is truncated per RFC 4226 (see
+	// Truncate) and formatted as decimal digits (0..9).
 	//
 	// If Format returns a string of the wrong length, code generation panics.
 	Format func(hash []byte, length int) string
