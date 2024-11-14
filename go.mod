@@ -7,7 +7,7 @@ require github.com/google/go-cmp v0.6.0
 require github.com/creachadair/mds v0.21.4
 
 require (
-	github.com/creachadair/wirepb v0.0.0-20240525191938-8530265c0822
+	github.com/creachadair/wirepb v0.0.0-20241106184042-3e89a96f99c4
 	honnef.co/go/tools v0.5.1
 )
 
