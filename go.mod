@@ -2,7 +2,7 @@ module github.com/creachadair/otp
 
 go 1.23
 
-require github.com/google/go-cmp v0.6.0
+require github.com/google/go-cmp v0.7.0
 
 require github.com/creachadair/mds v0.24.0
 
