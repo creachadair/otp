@@ -22,8 +22,8 @@ import (
 // settings (compatible with Google Authenticator) based on the given key.
 // An error is reported if the key is invalid.
 func DefaultTOTP(key string) (string, error) {
-	var std Config
-	if err := std.ParseKey(key); err != nil {
+	std, err := Config{}.WithKey(key)
+	if err != nil {
 		return "", err
 	}
 	return std.TOTP(), nil
@@ -33,8 +33,8 @@ func DefaultTOTP(key string) (string, error) {
 // settings (compatible with Google Authenticator) based on the given key.
 // An error is reported if the key is invalid.
 func DefaultHOTP(key string, counter uint64) (string, error) {
-	var std Config
-	if err := std.ParseKey(key); err != nil {
+	std, err := Config{}.WithKey(key)
+	if err != nil {
 		return "", err
 	}
 	return std.HOTP(counter), nil
@@ -83,6 +83,8 @@ type Config struct {
 
 // ParseKey parses a base32 key using the top-level ParseKey function, and
 // stores the result in c.
+//
+// Deprecated: Use [Config.WithKey] instead.
 func (c *Config) ParseKey(s string) error {
 	dec, err := ParseKey(s)
 	if err != nil {
@@ -90,6 +92,16 @@ func (c *Config) ParseKey(s string) error {
 	}
 	c.Key = string(dec)
 	return nil
+}
+
+// WithKey returns a copy of c with its Key field set to the result of parsing
+// s with [ParseKey]. In case of error, c is returned unmodified.
+func (c Config) WithKey(s string) (Config, error) {
+	dec, err := ParseKey(s)
+	if err == nil {
+		c.Key = string(dec)
+	}
+	return c, err
 }
 
 // ParseKey parses a key encoded as base32, the format used by common

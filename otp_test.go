@@ -61,9 +61,9 @@ func TestDefaultHOTP(t *testing.T) {
 
 func TestConfig_Next(t *testing.T) {
 	const testKey = "aaaa aaaa aaaa aaaa"
-	var cfg otp.Config
-	if err := cfg.ParseKey(testKey); err != nil {
-		t.Fatalf("ParseKey %q failed: %v", testKey, err)
+	cfg, err := otp.Config{}.WithKey(testKey)
+	if err != nil {
+		t.Fatalf("Setting key %q failed: %v", testKey, err)
 	}
 	var nrun int
 	for _, test := range googleTests {

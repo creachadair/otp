@@ -14,7 +14,7 @@ import (
 func fixedTime(z uint64) func() uint64 { return func() uint64 { return z } }
 
 func Example() {
-	cfg := otp.Config{
+	cfg, err := otp.Config{
 		Hash:   sha256.New, // default is sha1.New
 		Digits: 8,          // default is 6
 
@@ -22,11 +22,12 @@ func Example() {
 		// your own function to control how time steps are generated.
 		// This example uses a fixed time step so the output will be consistent.
 		TimeStep: fixedTime(1),
-	}
-
-	// 2FA setup tools often present the shared secret as a base32 string.
-	// ParseKey decodes this format.
-	if err := cfg.ParseKey("MFYH A3DF EB2G C4TU"); err != nil {
+	}.WithKey(
+		// 2FA setup tools often present the shared secret as a base32 string.
+		// WithKey decodes this format.
+		"MFYH A3DF EB2G C4TU",
+	)
+	if err != nil {
 		log.Fatalf("Parsing key: %v", err)
 	}
 
@@ -43,12 +44,12 @@ func Example() {
 
 func ExampleConfig_customFormat() {
 	// Use settings compatible with Steam Guard: 5 characters and a custom alphabet.
-	cfg := otp.Config{
+	cfg, err := otp.Config{
 		Digits:   5,
 		Format:   otp.FormatAlphabet("23456789BCDFGHJKMNPQRTVWXY"),
 		TimeStep: fixedTime(9876543210),
-	}
-	if err := cfg.ParseKey("CQKQ QEQR AAR7 77X5"); err != nil {
+	}.WithKey("CQKQ QEQR AAR7 77X5")
+	if err != nil {
 		log.Fatalf("Parsing key: %v", err)
 	}
 
@@ -61,13 +62,13 @@ func ExampleConfig_rawFormat() {
 	// The default formatting functions use the RFC 4226 truncation rules, but a
 	// custom formatter may do whatever it likes with the HMAC value.
 	// This example converts to base64.
-	cfg := otp.Config{
+	cfg, err := otp.Config{
 		Digits: 10,
 		Format: func(hash []byte, nb int) string {
 			return base64.StdEncoding.EncodeToString(hash)[:nb]
 		},
-	}
-	if err := cfg.ParseKey("MNQWE YTBM5 SAYTS MVQXI"); err != nil {
+	}.WithKey("MNQWE YTBM5 SAYTS MVQXI")
+	if err != nil {
 		log.Fatalf("Parsing key: %v", err)
 	}
 	fmt.Println(cfg.HOTP(17))
