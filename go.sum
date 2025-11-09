@@ -1,7 +1,7 @@
 github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c h1:pxW6RcqyfI9/kWtOwnv/G+AzdKuy2ZrqINhenH4HyNs=
 github.com/BurntSushi/toml v1.4.1-0.20240526193622-a339e1f7089c/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
-github.com/creachadair/mds v0.25.8 h1:lTlPBN6wS3OGKYEON6kOVl3sEWz/uJtV6x+qWJ0y6A0=
-github.com/creachadair/mds v0.25.8/go.mod h1:4hatI3hRM+qhzuAmqPRFvaBM8mONkS7nsLxkcuTYUIs=
+github.com/creachadair/mds v0.25.12 h1:Erqb/4yVG3rBBKlBQVhGJRU4y/u5xB+MAe7UhqfrgCs=
+github.com/creachadair/mds v0.25.12/go.mod h1:4hatI3hRM+qhzuAmqPRFvaBM8mONkS7nsLxkcuTYUIs=
 github.com/creachadair/wirepb v0.0.0-20251002031904-78c565c2f93e h1:xwraECKSvz2qkCx7Hv9z7S7ISmX8BkO0L+ZNLm/jvbI=
 github.com/creachadair/wirepb v0.0.0-20251002031904-78c565c2f93e/go.mod h1:dHvCVZSsk3Y/fhY0mUex0U2XBZszomOe7PzlghOtHnQ=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
