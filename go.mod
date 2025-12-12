@@ -1,12 +1,12 @@
 module github.com/creachadair/otp
 
-go 1.24
+go 1.25
 
 require github.com/google/go-cmp v0.7.0
 
-require github.com/creachadair/mds v0.25.13
+require github.com/creachadair/mds v0.25.15
 
-require github.com/creachadair/wirepb v0.0.0-20251002031904-78c565c2f93e
+require github.com/creachadair/wirepb v0.0.0-20251201055919-954ef89c4c71
 
 require (
 	golang.org/x/exp/typeparams v0.0.0-20231108232855-2478ac86f678 // indirect
