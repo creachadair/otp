@@ -141,12 +141,20 @@ func TestFormatBounds(t *testing.T) {
 }
 
 func TestFormatAlphabet(t *testing.T) {
+	const decimal = "0123456789"
+
 	tests := []struct {
 		alphabet string
 		want     string
 	}{
+		// Ensure shorter alphabets work (even though that is a bad idea).
+		{"x", "xxxxx"},
+		{"^v", "vvv^v"},
+		{"321", "22123"},
+
 		{"XYZPDQ", "PQXPP"},
-		{"0123456789", "43645"},
+		{decimal, "43645"},
+		{"012abcd789", "badbc"},
 	}
 	for _, test := range tests {
 		cfg := otp.Config{
@@ -159,6 +167,21 @@ func TestFormatAlphabet(t *testing.T) {
 			t.Errorf("[%q].HOTP(1) failed: got %q, want %q", test.alphabet, got, test.want)
 		}
 	}
+
+	// Verify that formatting with an explicit decimal digits alphabet produces
+	// the same results we get from the default formatter (which may be, and is
+	// currently as I write this, formatted using a different code path).
+	t.Run("Decimal", func(t *testing.T) {
+		cfg := otp.Config{Key: "whatever", Digits: 7}
+		withDefault := cfg.HOTP(12345)
+		cfg.Format = otp.FormatAlphabet(decimal)
+		withDecimal := cfg.HOTP(12345)
+		if withDefault != withDecimal {
+			t.Errorf("Decimal format: got %q, want %q", withDecimal, withDefault)
+		} else {
+			t.Logf("Decimal equiv OK %q", withDecimal)
+		}
+	})
 }
 
 var testHash = map[string]struct {
