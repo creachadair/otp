@@ -172,21 +172,22 @@ func TestParseeErrors(t *testing.T) {
 	}
 }
 
+// Test input synthesized using Google Authenticator.  To re-generate this
+// test example:
+//
+//   - Create a new entry named "test 1" with the key "fuzzlebuzzlegibbledibble", counter-based.
+//     Generate 3 codes from this (advancing the counter from 0 to 3).
+//   - Create a new entry named "test 2" with the key "applepieispeachy", time-based.
+//   - Export these two entries together as a single QR code.
+//   - Parse the QR code to export the migration URL.
+const testMigrationURL = `otpauth-migration://offline?data=CiEKDy0zlZA0zlZDICFZBoCFZBIGdGVzdCAxIAEoATABOAMKGgoKA96yPQREnkAI%2BBIGdGVzdCAyIAEoATACEAIYASAA`
+
 func TestParseMigrationURL(t *testing.T) {
-	// Test input synthesized using Google Authenticator.  To re-generate this
-	// test example:
-	//
-	//  - Create a new entry named "test 1" with the key "fuzzlebuzzlegibbledibble", counter-based.
-	//    Generate 3 codes from this (advancing the counter from 0 to 3).
-	//  - Create a new entry named "test 2" with the key "applepieispeachy", time-based.
-	//  - Export these two entries together as a single QR code.
-	//  - Parse the QR code to export the migration URL.
-	//
-	u, err := otpauth.ParseMigrationURL(`otpauth-migration://offline?data=CiEKDy0zlZA0zlZDICFZBoCFZBIGdGVzdCAxIAEoATABOAMKGgoKA96yPQREnkAI%2BBIGdGVzdCAyIAEoATACEAIYASAA`)
+	u, err := otpauth.ParseMigrationURL(testMigrationURL)
 	if err != nil {
 		t.Fatalf("ParseMigrationURL: unexpected error: %v", err)
 	}
-	if diff := cmp.Diff(u, []*otpauth.URL{{
+	want := []*otpauth.URL{{
 		Type:      "hotp",
 		Account:   "test 1",
 		RawSecret: "FUZZLEBUZZLEGIBBLEDIBBLE",
@@ -201,7 +202,93 @@ func TestParseMigrationURL(t *testing.T) {
 		Algorithm: "SHA1",
 		Digits:    6,
 		Period:    30, // default
-	}}); diff != "" {
+	}}
+	if diff := cmp.Diff(u, want); diff != "" {
 		t.Errorf("Parsed (-got, +want):\n%s", diff)
+	}
+
+	// Verify that if we render it to a new migration URL and re-parse, we get the same stuff.
+	// The URL itself might not be equal because of field ordering, defaults, etc.
+	s, err := otpauth.MigrationURL(u)
+	if err != nil {
+		t.Fatalf("Render migration URL: %v", err)
+	}
+	t.Logf("\nOld: %q\nNew: %q", testMigrationURL, s)
+
+	v, err := otpauth.ParseMigrationURL(s)
+	if err != nil {
+		t.Fatalf("ParseMigrationURL: unexpected error: %v", err)
+	}
+	if diff := cmp.Diff(v, want); diff != "" {
+		t.Errorf("Parsed (-got, +want):\n%s", diff)
+	}
+}
+
+func TestMigrationURL(t *testing.T) {
+	input := []*otpauth.URL{{
+		Type:      "totp",
+		Algorithm: "SHA1",
+		Account:   "test 1",
+		Issuer:    "minsc",
+		RawSecret: "MEEPMEEP",
+		Digits:    6,
+		Period:    30, // default
+	}, {
+		Type:      "hotp",
+		Algorithm: "SHA256",
+		Account:   "test 2",
+		Issuer:    "boo",
+		RawSecret: "OYVEY",
+		Digits:    8,
+		Period:    30, // default
+	}, {
+		Type:      "totp",
+		Algorithm: "MD5",
+		Account:   "test 3",
+		RawSecret: "APPLEPIEISPEACHY",
+		Digits:    6,
+		Period:    30, // default
+	}}
+
+	// Verify that we can convert the input to a URL and back
+	s, err := otpauth.MigrationURL(input)
+	if err != nil {
+		t.Fatalf("MigrationURL failed; %v", err)
+	}
+	t.Logf("Migration URL: %q", s)
+
+	us, err := otpauth.ParseMigrationURL(s)
+	if err != nil {
+		t.Fatalf("Parse migration failed; %v", err)
+	}
+	if diff := cmp.Diff(us, input); diff != "" {
+		t.Fatalf("Parsed (-got, +want):\n%s", diff)
+	}
+}
+
+func TestMigrationURLErrors(t *testing.T) {
+	tests := []struct {
+		input *otpauth.URL
+		want  string
+	}{
+		// If the type is set, it must be "hotp" or "totp" (ignoring case).
+		{&otpauth.URL{Type: "bogus"}, "unknown type"},
+
+		// If the algorithm is set, it must be one known by the Google enumeration.
+		{&otpauth.URL{Type: "totp", Algorithm: "wat"}, "unsupported algorithm"},
+
+		// Only 6 or 8 digits are supported by the Authenticator proto.
+		{&otpauth.URL{Type: "totp", Digits: 12}, "unsupported digit count"},
+
+		// If we have a secret, it had better be valid.
+		{&otpauth.URL{Type: "hotp", RawSecret: "*****"}, "illegal base32 data"},
+	}
+	for _, tc := range tests {
+		s, err := otpauth.MigrationURL([]*otpauth.URL{tc.input})
+		if err == nil || !strings.Contains(err.Error(), tc.want) {
+			t.Errorf("Input: %+v\ngot %q, %v, want %q", tc.input, s, err, tc.want)
+		} else {
+			t.Logf("Got expected error: %v", err)
+		}
 	}
 }
