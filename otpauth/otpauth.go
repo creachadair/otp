@@ -42,11 +42,10 @@ type URL struct {
 // Secret parses the contents of the RawSecret field.
 func (u *URL) Secret() ([]byte, error) { return otp.ParseKey(u.RawSecret) }
 
+var sec32 = base32.StdEncoding.WithPadding(base32.NoPadding)
+
 // SetSecret encodes key as base32 and updates the RawSecret field.
-func (u *URL) SetSecret(key []byte) {
-	enc := base32.StdEncoding.EncodeToString(key)
-	u.RawSecret = strings.TrimRight(enc, "=")
-}
+func (u *URL) SetSecret(key []byte) { u.RawSecret = sec32.EncodeToString(key) }
 
 // String converts u to a URL in the standard encoding.
 func (u *URL) String() string {
