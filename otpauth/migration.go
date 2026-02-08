@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"io"
 	"net/url"
 	"strings"
 
@@ -80,7 +79,7 @@ func parseMigrations(data []byte) ([]*URL, error) {
 
 	var out []*URL
 	s := wirepb.NewScanner(bytes.NewReader(data))
-	for s.Next() == nil {
+	for s.Next() {
 		if s.ID() == paramsField {
 			u, err := parseParams(s.Data())
 			if err != nil {
@@ -89,7 +88,7 @@ func parseMigrations(data []byte) ([]*URL, error) {
 			out = append(out, u)
 		}
 	}
-	if s.Err() != io.EOF {
+	if s.Err() != nil {
 		return nil, s.Err()
 	} else if len(out) == 0 {
 		return nil, errors.New("no URLs found")
@@ -110,7 +109,7 @@ func parseParams(data []byte) (*URL, error) {
 
 	var out = URL{Algorithm: defaultAlgorithm, Digits: defaultDigits, Period: defaultPeriod}
 	s := wirepb.NewScanner(bytes.NewReader(data))
-	for s.Next() == nil {
+	for s.Next() {
 		switch s.ID() {
 		case secretField:
 			out.SetSecret(s.Data())
@@ -157,7 +156,7 @@ func parseParams(data []byte) (*URL, error) {
 			out.Counter = v
 		}
 	}
-	if s.Err() != io.EOF {
+	if s.Err() != nil {
 		return nil, s.Err()
 	}
 	return &out, nil
