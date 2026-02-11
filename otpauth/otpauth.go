@@ -176,7 +176,7 @@ func ParseURL(s string) (*URL, error) {
 	}
 
 	// Parse URL parameters.
-	for _, param := range strings.Split(params, "&") {
+	for param := range strings.SplitSeq(params, "&") {
 		ps := strings.SplitN(param, "=", 2)
 		if len(ps) == 1 {
 			ps = append(ps, "") // check value below
