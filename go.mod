@@ -4,9 +4,9 @@ go 1.25.0
 
 require github.com/google/go-cmp v0.7.0
 
-require github.com/creachadair/mds v0.30.4
+require github.com/creachadair/mds v0.30.5
 
-require github.com/creachadair/wirepb v0.0.0-20260702150408-a42f1574e053
+require github.com/creachadair/wirepb v0.0.0-20260803044834-54eb959db0a7
 
 require (
 	golang.org/x/exp/typeparams v0.0.0-20231108232855-2478ac86f678 // indirect
