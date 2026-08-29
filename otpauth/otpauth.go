@@ -140,35 +140,30 @@ func (u *URL) parseLabel(s string) error {
 // on the label and in the parameters, the parameter takes priority.
 func ParseURL(s string) (*URL, error) {
 	// A scheme is not required, but if present it must be "otpauth".
-	if ps := strings.SplitN(s, "://", 2); len(ps) == 2 {
-		if ps[0] != "otpauth" {
-			return nil, fmt.Errorf("invalid scheme %q", ps[0])
+	if scheme, rest, ok := strings.Cut(s, "://"); ok {
+		if scheme != "otpauth" {
+			return nil, fmt.Errorf("invalid scheme %q", scheme)
 		}
-		s = ps[1] // trim scheme prefix
+		s = rest // trim scheme prefix
 	}
 
 	// Extract TYPE/LABEL and optional PARAMS.
-	var typeLabel, params string
-	if ps := strings.SplitN(s, "?", 2); len(ps) == 2 {
-		typeLabel, params = ps[0], ps[1]
-	} else {
-		typeLabel = ps[0]
-	}
+	typeLabel, params, _ := strings.Cut(s, "?")
 
 	// Require that type and label are both present and non-empty.
 	// Note that the "//" authority marker is treated as optional.
-	ps := strings.SplitN(strings.TrimPrefix(typeLabel, "//"), "/", 2) // [TYPE, LABEL]
-	if len(ps) != 2 || ps[0] == "" || ps[1] == "" {
+	otype, label, ok := strings.Cut(strings.TrimPrefix(typeLabel, "//"), "/")
+	if !ok || otype == "" || label == "" {
 		return nil, errors.New("invalid type/label")
 	}
 
 	out := &URL{
-		Type:      strings.ToLower(ps[0]),
+		Type:      strings.ToLower(otype),
 		Algorithm: defaultAlgorithm,
 		Digits:    defaultDigits,
 		Period:    defaultPeriod,
 	}
-	if err := out.parseLabel(ps[1]); err != nil {
+	if err := out.parseLabel(label); err != nil {
 		return nil, fmt.Errorf("invalid label: %v", err)
 	}
 	if params == "" {
@@ -177,23 +172,20 @@ func ParseURL(s string) (*URL, error) {
 
 	// Parse URL parameters.
 	for param := range strings.SplitSeq(params, "&") {
-		ps := strings.SplitN(param, "=", 2)
-		if len(ps) == 1 {
-			ps = append(ps, "") // check value below
-		}
-		value, err := url.QueryUnescape(ps[1])
+		name, vtext, _ := strings.Cut(param, "=")
+		value, err := url.QueryUnescape(vtext)
 		if err != nil {
 			return nil, fmt.Errorf("invalid value: %v", err)
 		}
 
 		// Handle string-valued parameters.
-		if ps[0] == "algorithm" {
+		if name == "algorithm" {
 			out.Algorithm = strings.ToUpper(value)
 			continue
-		} else if ps[0] == "issuer" {
+		} else if name == "issuer" {
 			out.Issuer = value
 			continue
-		} else if ps[0] == "secret" {
+		} else if name == "secret" {
 			out.RawSecret = value
 			continue
 		}
@@ -202,7 +194,7 @@ func ParseURL(s string) (*URL, error) {
 		// Defer error reporting so we report an unknown field first.
 		n, err := strconv.ParseUint(value, 10, 64)
 
-		switch ps[0] {
+		switch name {
 		case "counter":
 			out.Counter = n
 		case "digits":
@@ -210,7 +202,7 @@ func ParseURL(s string) (*URL, error) {
 		case "period":
 			out.Period = int(n)
 		default:
-			return nil, fmt.Errorf("invalid parameter %q", ps[0])
+			return nil, fmt.Errorf("invalid parameter %q", name)
 		}
 		if err != nil {
 			return nil, fmt.Errorf("invalid integer value %q", value)
