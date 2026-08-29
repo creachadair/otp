@@ -183,6 +183,12 @@ func TestParseeErrors(t *testing.T) {
 const testMigrationURL = `otpauth-migration://offline?data=CiEKDy0zlZA0zlZDICFZBoCFZBIGdGVzdCAxIAEoATABOAMKGgoKA96yPQREnkAI%2BBIGdGVzdCAyIAEoATACEAIYASAA`
 
 func TestParseMigrationURL(t *testing.T) {
+	t.Logf(`To verify with a real authenticator, run:
+
+qrencode -o- -t UTF8 '%s'
+
+and parse the resulting QR code with the target application.`, testMigrationURL)
+
 	u, err := otpauth.ParseMigrationURL(testMigrationURL)
 	if err != nil {
 		t.Fatalf("ParseMigrationURL: unexpected error: %v", err)
