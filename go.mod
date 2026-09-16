@@ -4,7 +4,7 @@ go 1.26.0
 
 require github.com/google/go-cmp v0.7.0
 
-require github.com/creachadair/mds v0.30.5
+require github.com/creachadair/mds v0.31.0
 
 require github.com/creachadair/wirepb v0.0.0-20260829190000-cf4b42dae5ca
 
