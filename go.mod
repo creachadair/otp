@@ -6,7 +6,7 @@ require github.com/google/go-cmp v0.7.0
 
 require github.com/creachadair/mds v0.31.0
 
-require github.com/creachadair/wirepb v0.0.0-20260829190000-cf4b42dae5ca
+require github.com/creachadair/wirepb v0.0.0-20261012173936-dd7bf07921bf
 
 require (
 	golang.org/x/exp/typeparams v0.0.0-20231108232855-2478ac86f678 // indirect
