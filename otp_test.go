@@ -84,6 +84,18 @@ func TestConfig_Next(t *testing.T) {
 	}
 }
 
+func TestKeyRoundTrip(t *testing.T) {
+	for _, key := range []string{"", "apple", "pear plum cherry", "abcdefg hijklmnop"} {
+		fkey := otp.FormatKey(key)
+		got, err := otp.ParseKey(fkey)
+		if err != nil {
+			t.Errorf("ParseKey %q: unexpected error: %v", fkey, err)
+		} else if string(got) != key {
+			t.Errorf("ParseKey %q: got %q, want %q", fkey, got, key)
+		}
+	}
+}
+
 func TestGoogleAuthCompat(t *testing.T) {
 	for _, test := range googleTests {
 		key, err := otp.ParseKey(test.key)
