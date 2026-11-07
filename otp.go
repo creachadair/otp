@@ -115,11 +115,11 @@ func ParseKey(s string) ([]byte, error) {
 	return base32.StdEncoding.DecodeString(clean)
 }
 
+var sec32 = base32.StdEncoding.WithPadding(base32.NoPadding)
+
 // FormatKey formats an OTP secret as unpadded base32, which is the
 // conventional format used to print OTP keys for human use.
-func FormatKey(key string) string {
-	return base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString([]byte(key))
-}
+func FormatKey(key string) string { return sec32.EncodeToString([]byte(key)) }
 
 // HOTP returns the HOTP code for the specified counter value.
 func (c Config) HOTP(counter uint64) string {
